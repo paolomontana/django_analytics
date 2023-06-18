@@ -1,0 +1,240 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Dashboard {% endblock title %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="header bg-primary pb-6">
+  <div class="container-fluid">
+    <div class="header-body">
+      <div class="row align-items-center py-4">
+        <div class="col-lg-6 col-7">
+          <!-- <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
+            <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
+              <li class="breadcrumb-item"><a href="#"><i class="fas fa-home"></i></a></li>
+              <li class="breadcrumb-item"><a href="#">Dashboards</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Default</li>
+            </ol>
+          </nav> -->
+
+        </div>
+        <form class="navbar-search navbar-search-light form-inline mr-sm-3" id="navbar-search-main">
+          <div class="form-group mb-0">
+            <div class="input-group input-group-alternative input-group-merge">
+              <input id="dataset_input" class="form-control" placeholder="Dataset URL" type="text">
+            </div>
+          </div>
+
+
+          <!-- <div class="col text-right">
+          <a href="#!" class="btn btn-sm btn-primary">See all</a>
+        </div> -->
+          <div class="col text-right">
+            <input id="dataset" class="btn btn-neutral" type="button" value="Load first 10 rows"
+              onclick="setDataset();" />
+          </div>
+
+          <button type="button" class="close" data-action="search-close" data-target="#navbar-search-main"
+            aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Card stats -->
+
+    </div>
+
+  </div>
+</div>
+
+
+
+<!-- Page content -->
+<div class="container-fluid mt--6">
+  <div class="row">
+    <div class="col-xl-12">
+      <div class="card">
+        
+        <!-- BLOCCO DATASET -->
+        <div id="datasetBlock">
+          <div  class="card-header border-0">
+            <div class="row align-items-center">
+              <div class="col">
+                <h3 class="mb-0">Dataset</h3>
+              </div>
+              <div class="col text-right">
+                <a id="fullDataset" href='#' class="btn btn-sm btn-primary">See all</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="table-responsive">
+        
+          <table id="datasetTable" class="table align-items-center table-flush">
+           
+          </table>
+        </div>
+      </div>
+
+      <!-- BLOCCO PLOT -->
+      <div class="card">
+        <div class="card-header border-0">
+          <div class="row align-items-center">
+            <div class="col">
+              <h3 class="mb-0">Select column and plot</h3>
+            </div>
+          </div>
+
+        </div>
+        <div class="table-responsive">
+          <table class="table  table-flush">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col">X</th>
+                <th scope="col">Y</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <select id="xPlot">
+
+                  </select>
+                </td>
+                <td>
+                  <select id="yPlot">
+
+                  </select>
+                </td>
+                <td>
+                  <div class="col">
+                    <a id="plot" class="btn btn-sm btn-primary">Plot</a>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+
+      <!-- FINE BLOCCO PLOT -->
+
+    </div>
+  </div>
+  {% load static %}
+  <div class="row">
+    <div id="img_plot" class="col-xl-12">
+      <!-- <div class="card bg-default"> -->
+       
+        
+        
+      <!-- </div> -->
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+<!-- Specific JS goes HERE -->
+{% block javascripts %}
+
+<script src="/static/assets/vendor/chart.js/dist/Chart.min.js"></script>
+<script src="/static/assets/vendor/chart.js/dist/Chart.extension.js"></script>
+
+
+
+<script>
+  function getColums(dataset) {
+
+  }
+  function empty(element) {
+    while (element.firstElementChild) {
+      element.firstElementChild.remove();
+    }
+  }
+  document.getElementById("dataset").onclick = function () {
+    $.ajax({
+      method: "POST",
+      url: "/rest/dataset/table",
+      data: { 'dataset_url': $("#dataset_input").val(), 'number_row': 10 },
+      success: function (data) {
+        element = document.getElementById("datasetTable")
+        empty(element);
+        document.getElementById("datasetTable").innerHTML = data['tableHtml'];
+
+        element = document.getElementById("xPlot")
+        empty(element);
+        document.getElementById("xPlot").innerHTML = data['selectColumnsHtml'];
+
+        element = document.getElementById("yPlot")
+        empty(element);
+        document.getElementById("yPlot").innerHTML = data['selectColumnsHtml'];
+      },
+      error: function (data) {
+        console.log("error")
+        console.log(data)
+      }
+    })
+  }, 1000
+</script>
+<script>
+  document.getElementById("fullDataset").onclick = function () {
+    $.ajax({
+      method: "POST",
+      url: "/rest/dataset/table",
+      data: { 'dataset_url': $("#dataset_input").val() },
+      success: function (data) {
+        element = document.getElementById("datasetTable")
+        empty(element);
+        document.getElementById("datasetTable").innerHTML = data['tableHtml'];
+
+        element = document.getElementById("xPlot")
+        empty(element);
+        document.getElementById("xPlot").innerHTML = data['selectColumnsHtml'];
+
+        element = document.getElementById("yPlot")
+        empty(element);
+        document.getElementById("yPlot").innerHTML = data['selectColumnsHtml'];
+      },
+      error: function (data) {
+        console.log("error")
+        console.log(data)
+      }
+    })
+  }, 1000
+</script>
+
+<script>
+  document.getElementById("plot").onclick = function () {
+    var x_plot=document.getElementById('xPlot');
+    var y_plot = document.getElementById('yPlot');
+    $.ajax({
+      method: "POST",
+      url: "/rest/dataset/plot",
+      data: { 'dataset_url' : $("#dataset_input").val(), 'x_plot' : x_plot.value, 'y_plot' : y_plot.value },
+      success: function (data) {
+        //$("x_plot").empty();img_plot
+
+        element = document.getElementById("img_plot")
+        empty(element);
+        console.log(data);
+       
+        document.getElementById("img_plot").innerHTML = '<img src="static/'+data+'" alt="Graph" >';
+      },
+      error: function (data) {
+        console.log("error")
+        console.log(data)
+      }
+    })
+  }, 1000
+</script>
+
+{% endblock javascripts %}
